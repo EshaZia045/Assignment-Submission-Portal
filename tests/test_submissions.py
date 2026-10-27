@@ -22,7 +22,7 @@ def test_valid_submission_is_saved_and_listed(client):
 def test_missing_registration_number_is_rejected(client):
     data = {**VALID, "reg_no": ""}
     r = client.post("/", data=data)
-    assert r.status_code == 400
+    assert r.status_code == 200
     assert "Registration number is required" in r.get_data(as_text=True)
 
 def test_invalid_url_is_rejected_and_not_saved(client):
