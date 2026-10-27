@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assignment Portal (Demo)</title>
+<style>
+  :root { --brand:#2f4fd8; --brand-dark:#2540b3; --bg:#f4f6fb; --card:#fff;
+          --text:#1f2937; --muted:#6b7280; --line:#e5e7eb; --err:#b42318; --errbg:#fef3f2; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+         background:var(--bg); color:var(--text); line-height:1.5; }
+  header { background:var(--brand); color:#fff; padding:1.5rem 1rem; }
+  header div { max-width:860px; margin:0 auto; }
+  header h1 { margin:0; font-size:1.5rem; }
+  header p { margin:.25rem 0 0; opacity:.85; font-size:.95rem; }
+  main { max-width:860px; margin:1.5rem auto; padding:0 1rem; display:grid; gap:1.5rem; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px;
+          padding:1.5rem; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+  .card h2 { margin:0 0 1rem; font-size:1.15rem; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  .full { grid-column:1 / -1; }
+  label { display:block; font-size:.85rem; font-weight:600; margin-bottom:.3rem; }
+  input { width:100%; padding:.65rem .75rem; border:1px solid #d1d5db; border-radius:8px;
+          font-size:.95rem; font-family:inherit; }
+  input:focus { outline:2px solid var(--brand); outline-offset:1px; border-color:var(--brand); }
+  button { background:var(--brand); color:#fff; border:0; border-radius:8px;
+           padding:.7rem 1.4rem; font-size:.95rem; font-weight:600; cursor:pointer; }
+  button:hover { background:var(--brand-dark); }
+  .errors { background:var(--errbg); border:1px solid #fecdca; color:var(--err);
+            border-radius:8px; padding:.75rem 1rem; margin-bottom:1rem; }
+  .errors p { margin:.15rem 0; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:left; padding:.65rem .5rem; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; }
+  td a { color:var(--brand); word-break:break-all; }
+  .empty { color:var(--muted); text-align:center; padding:1.5rem 0; }
+  .count { color:var(--muted); font-weight:400; font-size:.9rem; }
+  .note { color:var(--muted); font-size:.8rem; margin-top:.75rem; }
+  [hidden] { display:none; }
+  @media (max-width:600px) { .grid { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header><div>
+  <h1>Assignment Submission Portal</h1>
+  <p>Static demo of the portal frontend.</p>
+</div></header>
+<main>
+  <section class="card">
+    <h2>New submission</h2>
+    <div id="errors" class="errors" hidden></div>
+    <div class="grid">
+      <div><label for="name">Name</label>
+           <input id="name" placeholder="e.g. Ali Khan"></div>
+      <div><label for="reg_no">Registration number</label>
+           <input id="reg_no" placeholder="e.g. 2023-CS-045"></div>
+      <div class="full"><label for="title">Assignment title</label>
+           <input id="title" placeholder="e.g. Database Design Report"></div>
+      <div class="full"><label for="url">Submission URL</label>
+           <input id="url" placeholder="https://github.com/username/repo"></div>
+      <div class="full"><button id="submit" type="button">Submit assignment</button></div>
+    </div>
+    <p class="note">Demo only: submissions are kept in this page and cleared on refresh.</p>
+  </section>
+
+  <section class="card">
+    <h2>Saved submissions <span id="count" class="count">(0)</span></h2>
+    <p id="empty" class="empty">No submissions yet.</p>
+    <div id="tablewrap" style="overflow-x:auto" hidden>
+      <table>
+        <thead><tr><th>Name</th><th>Reg. No.</th><th>Assignment</th><th>Link</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+<script>
+  var items = [];
+  var labels = { name: "Name", reg_no: "Registration number", title: "Assignment title", url: "Submission URL" };
+
+  function validUrl(v) {
+    try { var u = new URL(v); return (u.protocol === "http:" || u.protocol === "https:") && !/\s/.test(v); }
+    catch (e) { return false; }
+  }
+
+  function cell(text) { var td = document.createElement("td"); td.textContent = text; return td; }
+
+  function render(errors) {
+    var box = document.getElementById("errors");
+    box.innerHTML = "";
+    errors.forEach(function (e) {
+      var p = document.createElement("p");
+      p.textContent = e;
+      box.appendChild(p);
+    });
+    box.hidden = errors.length === 0;
+
+    document.getElementById("count").textContent = "(" + items.length + ")";
+    document.getElementById("empty").hidden = items.length > 0;
+    document.getElementById("tablewrap").hidden = items.length === 0;
+    var rows = document.getElementById("rows");
+    rows.innerHTML = "";
+    items.forEach(function (s) {
+      var tr = document.createElement("tr");
+      tr.appendChild(cell(s.name));
+      tr.appendChild(cell(s.reg_no));
+      tr.appendChild(cell(s.title));
+      var td = document.createElement("td");
+      var a = document.createElement("a");
+      a.href = s.url; a.textContent = s.url; a.target = "_blank"; a.rel = "noopener";
+      td.appendChild(a); tr.appendChild(td);
+      rows.appendChild(tr);
+    });
+  }
+
+  document.getElementById("submit").addEventListener("click", function () {
+    var data = {}, errors = [];
+    Object.keys(labels).forEach(function (k) {
+      data[k] = document.getElementById(k).value.trim();
+      if (!data[k]) errors.push(labels[k] + " is required");
+    });
+    if (data.url && !validUrl(data.url)) errors.push("Submission URL is invalid");
+    if (!errors.length) {
+      items.push(data);
+      Object.keys(labels).forEach(function (k) { document.getElementById(k).value = ""; });
+    }
+    render(errors);
+  });
+  render([]);
+</script>
+</body>
+</html>

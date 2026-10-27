@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest   # use "self-hosted" if running the runner on your own PC
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest -v --json-report --json-report-file=raw-results.json
+
+      - name: Build and send report
+        if: always()
+        env:
+          RECEIVER_URL: ${{ secrets.RECEIVER_URL }}
+          REPORT_TOKEN: ${{ secrets.REPORT_TOKEN }}
+        run: python scripts/build_report.py
+
+      # ---- Bonus B: email report (uncomment after adding secrets) ----
+      # - name: Email report
+      #   if: always()
+      #   uses: dawidd6/action-send-mail@v3
+      #   with:
+      #     server_address: smtp.gmail.com
+      #     server_port: 465
+      #     secure: true
+      #     username: ${{ secrets.SMTP_USERNAME }}
+      #     password: ${{ secrets.SMTP_PASSWORD }}
+      #     to: ${{ secrets.REPORT_EMAIL_TO }}
+      #     from: CI Reports <${{ secrets.SMTP_USERNAME }}>
+      #     subject: "CI ${{ github.repository }} @ ${{ github.sha }}"
+      #     body: file://summary.txt
+      #     attachments: test-report.json
+
+  # ---- Bonus A: deploy to GitHub Pages only if tests pass on main ----
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4
