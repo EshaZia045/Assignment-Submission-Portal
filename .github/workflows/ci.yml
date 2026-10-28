@@ -6,7 +6,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest   # use "self-hosted" if running the runner on your own PC
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -27,7 +27,6 @@ jobs:
           REPORT_TOKEN: ${{ secrets.REPORT_TOKEN }}
         run: python scripts/build_report.py
 
-      # ---- Bonus B: Email Report ----
       - name: Send Email Report
         if: always()
         uses: dawidd6/action-send-mail@v3
@@ -50,7 +49,6 @@ jobs:
 
             Status: Pipeline execution finished. Check GitHub Actions logs or local test-report.json for details.
 
-  # ---- Bonus A: deploy to GitHub Pages only if tests pass on main ----
   deploy:
     needs: test
     if: github.ref == 'refs/heads/main'
