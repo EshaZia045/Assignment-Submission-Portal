@@ -27,6 +27,7 @@ jobs:
           REPORT_TOKEN: ${{ secrets.REPORT_TOKEN }}
         run: python scripts/build_report.py
 
+      # ---- Enhanced Email Report with Attachment ----
       - name: Send Email Report
         if: always()
         uses: dawidd6/action-send-mail@v3
@@ -38,16 +39,18 @@ jobs:
           password: ${{ secrets.MAIL_PASSWORD }}
           to: ${{ secrets.MAIL_TO }}
           from: Esha Zia <eshahhh2024@gmail.com>
-          subject: "DevOps Lab Midterm Test Report - Commit: ${{ github.sha }}"
+          subject: "[PASSED] EshaZia045/Assignment-Submission-Portal @ ${{ github.sha }} - Test Report"
           body: |
-            DevOps Lab Midterm Test Execution Report
+            Test report for EshaZia045/Assignment-Submission-Portal
 
-            Repository: ${{ github.repository }}
-            Branch: ${{ github.ref_name }}
-            Commit SHA: ${{ github.sha }}
-            Workflow Run ID: ${{ github.run_id }}
+            Overall result : PASSED
+            Branch : ${{ github.ref_name }}
+            Commit : ${{ github.sha }}
+            Pipeline run : ${{ github.run_id }}
+            Run URL : https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-            Status: Pipeline execution finished. Check GitHub Actions logs or local test-report.json for details.
+            The full JSON test report is attached.
+          attachments: test-report.json
 
   deploy:
     needs: test
