@@ -27,21 +27,28 @@ jobs:
           REPORT_TOKEN: ${{ secrets.REPORT_TOKEN }}
         run: python scripts/build_report.py
 
-      # ---- Bonus B: email report (uncomment after adding secrets) ----
-      # - name: Email report
-      #   if: always()
-      #   uses: dawidd6/action-send-mail@v3
-      #   with:
-      #     server_address: smtp.gmail.com
-      #     server_port: 465
-      #     secure: true
-      #     username: ${{ secrets.SMTP_USERNAME }}
-      #     password: ${{ secrets.SMTP_PASSWORD }}
-      #     to: ${{ secrets.REPORT_EMAIL_TO }}
-      #     from: CI Reports <${{ secrets.SMTP_USERNAME }}>
-      #     subject: "CI ${{ github.repository }} @ ${{ github.sha }}"
-      #     body: file://summary.txt
-      #     attachments: test-report.json
+      # ---- Bonus B: Email Report ----
+      - name: Send Email Report
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          to: ${{ secrets.MAIL_TO }}
+          from: Esha Zia <eshahhh2024@gmail.com>
+          subject: "DevOps Lab Midterm Test Report - Commit: ${{ github.sha }}"
+          body: |
+            DevOps Lab Midterm Test Execution Report
+
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit SHA: ${{ github.sha }}
+            Workflow Run ID: ${{ github.run_id }}
+
+            Status: Pipeline execution finished. Check GitHub Actions logs or local test-report.json for details.
 
   # ---- Bonus A: deploy to GitHub Pages only if tests pass on main ----
   deploy:
